@@ -20,11 +20,8 @@ FUNCTION
     build_items_list      -- stores the items for the selected car in the scroll list visible to the user
                              to allow for item selection
     do_cancel             -- returns control to the MainFrame view
-    do_update_items       -- activates AddItemsFrame view to allow user to update the selected item
     do_add_items          -- activates AddItemsFrame view to allow user to add new items
     do_del_items          -- deletes selected item from selected car's maintenance items list
-    clear_items_window    -- calls method grid_forget() to remove the ItemsFrame object from view
-    activate_items_window -- activates the ItemsFrame view and restores its contents
     on_item_select        -- performs the following based on option menu selection:
                              Update Maintenance Log Item option - activates PerformMaintFrame view
                              Delete Selected Item option - delete item from car's maintenance list
@@ -40,8 +37,12 @@ DATA
 
 import carmaintenance as cm
 from tkinter import *
+from PIL import ImageTk, Image
 
-# provide data/methods for the ItemsFrame view
+
+#
+# Provide data/methods for the ItemsFrame view
+#
 class ItemsFrame:
 
     # initialize the views contents and store data in object
@@ -49,63 +50,92 @@ class ItemsFrame:
         self.master = master
         self.tk = tk
 
-        self.items_frame = Frame(self.tk)
-        self.items_frame.grid(row =0, column=0, sticky=N+S+E+W)
+        self.frame = Frame(self.tk, bg=self.tk.background)
+        self.frame.pack(fill=BOTH, expand=TRUE)
+
+        # Create and insert phone background image
+        load_file = "phone-background.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=0, y=0, relwidth=1, relheight=1, anchor=NW)
+        load_file = "phone-hdr.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_hdr_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_hdr_panel.image = photo
+        self.img_hdr_panel.place(x=20, y=80, anchor=NW)
 
         # Create cancel button to return to previous view
-        self.cancel_button = Button(self.items_frame, text="X", command=self.do_cancel, font=("Helvetica", 16))
-        self.cancel_button.config(height=2, borderwidth=0)
-        self.cancel_button.grid(row=1, padx=5, pady=10, sticky=W)
+        self.cancel_button = Button(self.frame, text="←", command=self.do_cancel,
+                                    font=("Helvetica", 16), bg=self.tk.background)
+        self.cancel_button.config(borderwidth=0)
+        self.cancel_button.place(x=10, y=95, anchor=NW)
 
-        # Create label indicating list of maintenance items
-        self.items_label = Label(self.items_frame, text="Maintenance Items", font=("Helvetica", 16))
-        self.items_label.grid(row=1, padx=10, pady=10)
-        self.items_label.config(height=2, width=15)
+        # Create and insert car image
+        load_file = "car.png"
+        img = Image.open(load_file)
+        img = img.resize((25,25),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=150, y=115, anchor=CENTER)
 
         # Create label to identify the car selected
-        self.car_name_label = Label(self.items_frame, text="", font=("Helvetica", 12))
-        self.car_name_label.grid(row=2)
-        self.car_name_label.config(height=1)
+        self.car_name_label = Label(self.frame, text="", font=("Helvetica", 16), bg=self.tk.background)
+        self.car_name_label.place(x=150, y=140, anchor=CENTER)
 
         # Create label to identify the mileage for the car selected
-        self.mileage_label = Label(self.items_frame, text="", font=("Helvetica", 12))
-        self.mileage_label.grid(row=3)
-        self.mileage_label.config(height=1)
-
-        # Create label to display information to the user
-        self.info_label = Label(self.items_frame, text="", font=("Helvetica", 10))
-        self.info_label.grid(row=4, padx=5, sticky=W)
+        self.mileage_label = Label(self.frame, text="", font=("Helvetica", 12), bg=self.tk.background)
+        self.mileage_label.place(x=150, y=175, anchor=CENTER)
 
         # Create button to update the selected car's mileage
-        self.update_mileage_button = Button(self.items_frame, text="Update Mileage", command=self.do_update_mileage,
-                                            font=("Helvetica", 10))
-        self.update_mileage_button.grid(row=4, padx=5, sticky=E)
+        self.update_mileage_button = Button(self.frame, text="Update Mileage", command=self.do_update_mileage,
+                                            font=("Helvetica", 10), bg=self.tk.background)
+        self.update_mileage_button.place(x=150, y=205, anchor=CENTER)
+
+        # Create and insert wrench image
+        load_file = "wrench.png"
+        img = Image.open(load_file)
+        img = img.resize((30,30),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=70, y=245, anchor=CENTER)
+
+        # Create label indicating list of maintenance items
+        self.items_label = Label(self.frame, text="Maintenance Items",
+                                 font=("Helvetica", 12), bg=self.tk.background)
+        self.items_label.place(x=155, y=245, anchor=CENTER)
 
         # Create list box to show all the maintenance items for the selected car
-        self.items_scrollbar = Scrollbar(self.items_frame, orient="vertical")
-        self.items_scrollbar.grid(row=5, column=1, sticky=N+S)
-        self.items_list_nodes = Listbox(self.items_frame, exportselection=0, yscrollcommand=self.items_scrollbar.set,
+        self.items_scrollbar = Scrollbar(self.frame, orient="vertical")
+        self.items_scrollbar.place(x=270, y=265, height=200, anchor=NW)
+        self.items_list_nodes = Listbox(self.frame, exportselection=0, yscrollcommand=self.items_scrollbar.set,
                                         font=("Helvetica", 12))
-        self.items_list_nodes.grid(row=5, column=0, padx = 5, pady = 5, sticky=N+S+E+W)
-        self.items_list_nodes.config(width=30)
+        self.items_list_nodes.place(x=10, y=265, anchor=NW)
+        self.items_list_nodes.config(width=29)
         self.items_list_nodes.bind("<<ListboxSelect>>", self.on_item_select)
         self.items_scrollbar.config(command=self.items_list_nodes.yview)
 
         # Create label and drop down menu to select between updating maintenance record or deleting items in list box
-        self.selection_mode_label = Label(self.items_frame, text="Selection Mode:", font=("Helvetica", 10))
-        self.selection_mode_label.grid(row=6, padx=5, pady=10, sticky=W)
+        self.selection_mode_label = Label(self.frame, text="Selection Mode:", font=("Helvetica", 10),
+                                          bg=self.tk.background)
+        self.selection_mode_label.place(x=10, y=485, anchor=W)
         self.dropOptions=["Update Maintenance Log", "Delete Selected Item"]
         self.dropVar = StringVar()
         self.dropVar.set(self.dropOptions[0])  # default choice
-        self.selection_mode_button = OptionMenu(self.items_frame, self.dropVar, *self.dropOptions,
+        self.selection_mode_button = OptionMenu(self.frame, self.dropVar, *self.dropOptions,
                                                 command=self.set_option_background)
-        self.selection_mode_button.grid(row=6, pady=10, sticky=E)
+        self.selection_mode_button.place(x=115, y=485, anchor=W)
+        self.selection_mode_button.config(bg=self.tk.background)
         self.original_option_background_color = self.selection_mode_button.cget("background")
 
         # create add button to add maintenance items for selected car
-        self.add_button = Button(self.items_frame, text="Add Item", command=self.do_add_items, font=("Helvetica", 10))
-        self.add_button.config(borderwidth=2)
-        self.add_button.grid(row=7, padx=10)
+        self.add_button = Button(self.frame, text="Add Item", command=self.do_add_items,
+                                 font=("Helvetica", 10), bg=self.tk.background)
+        self.add_button.place(x=15, y=530, anchor=SW)
 
         # inserts the car names into the ListBox
         self.build_items_list()
@@ -119,11 +149,16 @@ class ItemsFrame:
 
     # clears the MainFrame view and activates the UpdateMileageFrame view
     def do_update_mileage(self):
-        self.clear_items_window()
         self.master.activate_update_mileage_window()
 
     # stores the item names for the selected car in the visible scroll list
     def build_items_list(self):
+        car = cm.selections.get_car_selected()
+        car_text_entry = car.replace('_', ' ')
+        mileage = cm.car_data.get_mileage(car)
+        msg_text = "Current Mileage: " + str(mileage)
+        self.mileage_label.config(text=msg_text)
+        self.car_name_label.config(text=car_text_entry)
         self.items_list_nodes.delete(0, self.items_list_nodes.size())
         car = cm.selections.get_car_selected()
         items_list = cm.car_data.get_items_list(car)
@@ -139,20 +174,13 @@ class ItemsFrame:
                 self.items_list_nodes.itemconfig(item_index, {'bg': 'white'})
             item_index = item_index + 1
 
-    # cancels the request clearing the view and returning to the MainFrame view
+    # activates the MainFrame view
     def do_cancel(self):
-        self.clear_items_window()
         self.master.activate_main_window()
 
-    # sets update to True, clears the ItemsFrame view, and activates the AddItemsFrame view
-    def do_update_items(self):
-        self.clear_items_window()
-        self.master.activate_add_items_window(update=True) # opens in update mode
-
-    # clears the ItemsFrame view, and activates the AddItemsFrame view
+    # activates the AddItemsFrame view
     def do_add_items(self):
         cm.selections.set_item_selected("")  # clear item selected, since an add is being performed
-        self.clear_items_window()
         self.master.activate_add_items_window()
  
     # delete the selected item from the car's maintenance list
@@ -160,21 +188,6 @@ class ItemsFrame:
         car = cm.selections.get_car_selected()
         item = cm.selections.get_item_selected()
         cm.car_data.del_car_items(car, item)
-
-    # removes from view the ItemsFrame view
-    def clear_items_window(self):
-        self.items_frame.grid_forget()
-
-    # restores the view of the ItemsFrame view and restores it's contents
-    def activate_items_window(self):
-        self.items_frame.grid(column=0, row=0)
-        car = cm.selections.get_car_selected()
-        car_text_entry = car.replace('_', ' ')
-        mileage = cm.car_data.get_mileage(car)
-        msg_text = "Current Mileage: " + str(mileage)
-        self.info_label.config(text=msg_text)
-        self.car_name_label.config(text=car_text_entry)
-        self.build_items_list()
 
     # Display Maintenance Item option selected - selection activates the PerformMaintFrame view
     # Delete Selected Item option selected - selection deletes the selected item from the car's maintenance list
@@ -187,16 +200,14 @@ class ItemsFrame:
 
             # if in display mode clear the view and activate the PerformMaintFrame view
             if self.dropVar.get() == "Update Maintenance Log":
-                self.clear_items_window()
                 self.master.activate_perform_maint_window()
 
-            #else in delete mode - delete the item, clear the ItemsFrame view and reactivate the ItemsFrame view
+            # else in delete mode - delete the item, clear the ItemsFrame view and reactivate the ItemsFrame view
             else:
                 self.do_del_items()
 
                 # reset the mode back to display mode to prevent accidental deletes
                 self.dropVar.set(self.dropOptions[0])
                 self.selection_mode_button.config(background=self.original_option_background_color)
-                self.clear_items_window()
-                self.activate_items_window()
+                self.master.activate_items_window()
 
