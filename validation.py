@@ -33,12 +33,14 @@ def is_valid_number(text):
         is_valid = False
     return is_valid
 
+
 # validate text entered is a non-negative integer or blank
 def is_valid_number_or_blank(text):
     is_valid = True
     if text != "":
         is_valid = is_valid_number(text)
     return is_valid
+
 
 # validate the day selected based on the month selected
 def is_valid_day(month, day):
