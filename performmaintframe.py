@@ -20,8 +20,6 @@ FUNCTION
     do_update_item                -- clear the PerformMaint object and activate the AddItemsFrame object view
                                      to update the maintenance item's frequency data
     do_cancel                     -- returns control to the ItemsFrame object
-    clear_perform_maint_window    -- calls method grid_forget() to remove the PerformMaintFrame window from view
-    activate_perform_maint_window -- sets the PerformMaintFrame object back into view
 
 DATA
     self                          -- contains the Frame object used for viewing
@@ -34,10 +32,14 @@ DATA
 
 import carmaintenance as cm
 import validation as v
-from datetime import datetime
-from tkinter import *
 
-# provide data/methods for the PerformMaint view
+from tkinter import *
+from PIL import ImageTk, Image
+
+
+#
+# Provide data/methods for the PerformMaint view
+#
 class PerformMaintFrame:
 
     # initialize the window contents and store data in object
@@ -45,58 +47,100 @@ class PerformMaintFrame:
         self.master = master
         self.tk = tk
 
-        self.perform_maint_frame = Frame(self.tk)
-        self.perform_maint_frame.grid(row =0, column=0, sticky=N+S+E+W)
+        self.frame = Frame(self.tk,bg=self.tk.background)
+        self.frame.pack(fill=BOTH, expand=TRUE)
+
+        # Create and insert phone background image
+        load_file = "phone-background.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=0, y=0, relwidth=1, relheight=1, anchor=NW)
+        load_file = "phone-hdr.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_hdr_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_hdr_panel.image = photo
+        self.img_hdr_panel.place(x=20, y=80, anchor=NW)
 
         # Create cancel button to return to previous frame
-        self.cancel_button = Button(self.perform_maint_frame, text="X", command=self.do_cancel, font=("Helvetica", 16))
-        self.cancel_button.config(height=2, borderwidth=0)
-        self.cancel_button.grid(row=1, padx=5, pady=10, sticky=W)
+        self.cancel_button = Button(self.frame, text="←", command=self.do_cancel,
+                                    font=("Helvetica", 16), bg=self.tk.background)
+        self.cancel_button.config(borderwidth=0)
+        self.cancel_button.place(x=10, y=95, anchor=NW)
 
-        # Create label to display the selected item
-        self.item_label = Label(self.perform_maint_frame, text="", font=("Helvetica", 16))
-        self.item_label.grid(row=1)
+        # Create and insert car image
+        load_file = "car.png"
+        img = Image.open(load_file)
+        img = img.resize((40,40),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=150, y=120, anchor=CENTER)
 
         # Create label to display the selected car name
-        self.car_name_label = Label(self.perform_maint_frame, text = "", font=("Helvetica", 16))
-        self.car_name_label.grid(row=2)
-        self.car_name_label.config(width=25)
+        self.car_name_label = Label(self.frame, text = "", font=("Helvetica", 16), bg=self.tk.background)
+        self.car_name_label.place(x=150, y=150, anchor=CENTER)
+
+        # Create and insert wrench image
+        load_file = "wrench.png"
+        img = Image.open(load_file)
+        img = img.resize((30,30),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=150, y=200, anchor=CENTER)
+
+        # Create label to display the selected item
+        self.item_label = Label(self.frame, text="", font=("Helvetica", 16), bg=self.tk.background)
+        self.item_label.place(x=150, y=230, anchor=CENTER)
 
         # Create button to allow user to modify the item's frequency of maintenance
-        self.update_maint_item_button = Button(self.perform_maint_frame, command=self.do_update_item,
-                                               text="View Maintenance Frequency", font=("Helvetica", 12))
-        self.update_maint_item_button.grid(row=3, padx=10, pady=10)
+        self.update_maint_item_button = Button(self.frame, command=self.do_update_item,
+                                               text="View Maintenance Frequency", font=("Helvetica", 12), bg=self.tk.background)
+        self.update_maint_item_button.place(x=150, y=280, anchor=CENTER)
 
-        # Create lables to indicate recent maintenance performed
-        self.maint_performed_label1 = Label(self.perform_maint_frame, text="Recent", font=("Helvetica", 12))
-        self.maint_performed_label1.grid(row=5)
-        self.maint_performed_label2 = Label(self.perform_maint_frame, text="Maintenance Performed", font=("Helvetica", 12))
-        self.maint_performed_label2.grid(row=6, pady=10)
+        # Create labels to indicate recent maintenance performed
+        self.maint_performed_label2 = Label(self.frame, text="Recent Maintenance Performed",
+                                            font=("Helvetica", 12), bg=self.tk.background)
+        self.maint_performed_label2.place(x=150, y=340, anchor=CENTER)
 
         # Create entry to allow user to specify the mileage frequency for the selected item
-        self.last_maint_mileage_label = Label(self.perform_maint_frame, text="at", font=("Helvetica", 10))
-        self.last_maint_mileage_label.grid(row=7, padx=40, pady=10, sticky=W)
-        self.last_maint_mileage_entry = Entry(self.perform_maint_frame, font=("Helvetica", 10))
-        self.last_maint_mileage_entry.grid(row=7)
-        self.last_maint_mileage_label2 = Label(self.perform_maint_frame, text="miles", font=("Helvetica", 10))
-        self.last_maint_mileage_label2.grid(row=7, padx=25, sticky=E)
+        self.last_maint_mileage_label = Label(self.frame, text="at", font=("Helvetica", 10), bg=self.tk.background)
+        self.last_maint_mileage_label.place(x=30, y=385, anchor=W)
+        self.last_maint_mileage_entry = Entry(self.frame, font=("Helvetica", 10))
+        self.last_maint_mileage_entry.place(x=50, y=385, anchor=W)
+        self.last_maint_mileage_label2 = Label(self.frame, text="miles", font=("Helvetica", 10), bg=self.tk.background)
+        self.last_maint_mileage_label2.place(x=200, y=385, anchor=W)
 
         # Create entry to allow user to specify the time frequency in months for the selected item
-        self.last_maint_date_label = Label(self.perform_maint_frame, text="on", font=("Helvetica", 10))
-        self.last_maint_date_label.grid(row=8, padx=40, pady=10, sticky=W)
-        self.last_maint_date_entry = Entry(self.perform_maint_frame, font=("Helvetica", 10))
-        self.last_maint_date_entry.grid(row=8)
-        self.last_maint_date_label2 = Label(self.perform_maint_frame, text="(mm/dd/yyyy)", font=("Helvetica", 10))
-        self.last_maint_date_label2.grid(row=8, padx=5, sticky=E)
+        self.last_maint_date_label = Label(self.frame, text="on", font=("Helvetica", 10), bg=self.tk.background)
+        self.last_maint_date_label.place(x=30, y=430, anchor=W)
+        self.last_maint_date_entry = Entry(self.frame, font=("Helvetica", 10))
+        self.last_maint_date_entry.place(x=50, y=430, anchor=W)
+        self.last_maint_date_label2 = Label(self.frame, text="(mm/dd/yyyy)", font=("Helvetica", 10), bg=self.tk.background)
+        self.last_maint_date_label2.place(x=200, y=430, anchor=W)
 
         # Create label to display information to the user
-        self.info_label = Label(self.perform_maint_frame, text="", font=("Helvetica", 10))
-        self.info_label.grid(row=9)
+        self.info_label = Label(self.frame, text="", fg="red", font=("Helvetica", 10), bg=self.tk.background)
+        self.info_label.place(x=150, y=460, anchor=CENTER)
 
         # Create button to add/update the frequency information for the selected item
-        self.add_maint_perform_button = Button(self.perform_maint_frame, command=self.do_add,
-                                               text="Save", font=("Helvetica", 12))
-        self.add_maint_perform_button.grid(row=10, padx=10)
+        self.add_maint_perform_button = Button(self.frame, command=self.do_add,
+                                               text="Save", font=("Helvetica", 12), bg=self.tk.background)
+        self.add_maint_perform_button.place(x=15, y=530, anchor=SW)
+
+        car = cm.selections.get_car_selected()
+        car_text_entry = car.replace('_', ' ')
+        self.car_name_label.config(text=car_text_entry)
+        item = cm.selections.get_item_selected()
+        item_text_entry = item.replace('_', ' ')
+        self.item_label.config(text=item_text_entry)
+        last_maint_mileage = cm.car_data.get_item_last_mileage(car, item)
+        if last_maint_mileage != 0: self.last_maint_mileage_entry.insert(0, last_maint_mileage)
+        last_maint_date = cm.car_data.get_item_last_date(car, item)
+        if last_maint_date != "": self.last_maint_date_entry.insert(0, last_maint_date)
 
     # store the last performed maintenance information for the selected item
     def do_add(self):
@@ -117,40 +161,13 @@ class PerformMaintFrame:
             freq_mileage = cm.car_data.get_item_freq_miles(car, item)
             freq_time = cm.car_data.get_item_freq_time(car, item)
             cm.car_data.add_car_items(car, item, freq_mileage, freq_time, last_maint_mileage, last_maint_date)
-            self.clear_perform_maint_window()
             self.master.activate_items_window()
 
-    # clear the PerformMaintFrame view and activate the AddItemsFrame view
+    # activates the AddItemsFrame view
     def do_update_item(self):
-        self.clear_perform_maint_window()
-        self.master.activate_add_items_window(update=True)
+        self.master.activate_add_items_window()
 
-    # clear the PerformMaintFrame view and activate the ItemsFrame view
+    # activates the ItemsFrame view
     def do_cancel(self):
-        # cancels the request clearing the delete
-        self.clear_perform_maint_window()
         self.master.activate_items_window()
-
-    # clear the PerformMaintFrame view
-    def clear_perform_maint_window(self):
-        # removes from view the delete car window
-        self.last_maint_date_entry.delete(0, END)
-        self.last_maint_mileage_entry.delete(0, END)
-        self.info_label.config(text="")
-        self.perform_maint_frame.grid_forget()
-
-    # activate the PerformMaintFrame view and restores it's contents
-    def activate_perform_maint_window(self):
-        # restores the view of the maintenance items window
-        self.perform_maint_frame.grid(column=0, row=0)
-        car = cm.selections.get_car_selected()
-        car_text_entry = car.replace('_', ' ')
-        self.car_name_label.config(text=car_text_entry)
-        item = cm.selections.get_item_selected()
-        item_text_entry = item.replace('_', ' ')
-        self.item_label.config(text=item_text_entry)
-        last_maint_mileage = cm.car_data.get_item_last_mileage(car, item)
-        if last_maint_mileage != 0: self.last_maint_mileage_entry.insert(0, last_maint_mileage)
-        last_maint_date = cm.car_data.get_item_last_date(car, item)
-        if last_maint_date != "": self.last_maint_date_entry.insert(0, last_maint_date)
 
