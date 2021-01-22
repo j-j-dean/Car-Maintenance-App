@@ -17,11 +17,19 @@ CLASS
 
 FUNCTION
                             -- UserSelection methods
+    __init__                         -- Store car/item selected
     set_car_selected                 -- Getters and Setters
     get_car_selected
     set_item_selected
     get_item_selected
+                            -- MaintainItem methods
+    __init__                             -- Store the frequeency (based on time and mileage) for maintenance
+                                            and store the last time maintenance performed (time and mileagae)
+    __repr__                             -- Method to format the printing of the contents of the object
                             -- CarToMaintain methods
+    __init__                             -- Store the car name, mileage and list of maintenance items
+    __iter__                             -- yield the next item in the list of maintenance items
+    __repr__                             -- Method to format the printing of the contents of the object
     add_maintenance_item                 -- Add MaintainItem object for selected car
     del_maintenance_item                 -- Delete MaintainItem object for selected car
     get_maintenance_item_freq_miles      -- Getters and Setters
@@ -29,6 +37,9 @@ FUNCTION
     get_maintenance_item_last_mileage
     get_maintenance_item_last_date
                            -- CarMaintenance methods
+    __init__                          -- create the car list
+    __iter__                          -- yield the next car (CarToMaintain object) in the car list
+    __repr__                          -- Method to format the printing of the contents of the object
     add_car                           -- Add CarToMaintain object corresponding to
                                          newly selected car name
     del_car                           -- Delete CarToMaintain object for selected car
@@ -64,11 +75,13 @@ DATA
 import pickle
 from datetime import datetime
 
-# filename is the file and directory where the maintenance data will be stored
-storage_file_name = 'CarMaintenance.dat'
-backup_and_restore_file_name = 'CarMaintenance.bak'
+storage_file_name = 'CarMaintenance.dat'              # File name where data is stored
+backup_and_restore_file_name = 'CarMaintenance.bak'   # File name where backup data is stored
 
-# object to store the current car and item selected by the user
+
+#
+# Class to store the current car and item data selected by the user
+#
 class UserSelections:
 
     # store data in object
@@ -85,17 +98,19 @@ class UserSelections:
         return self.carSelected
 
     # setter - sets itemSelected
-    def set_item_selected(self, itemSelected):
-        self.itemSelected = itemSelected
+    def set_item_selected(self, item_selected):
+        self.itemSelected = item_selected
 
     # getter - gets itemSelected
     def get_item_selected(self):
         return self.itemSelected
 
 
-"""MaintenanceItem object stores the inital mileage and date, the frequency 
-   of maintenance in miles and time(months), the mileage and date for the
-   last time this maintenance was performed"""
+#
+# MaintenanceItem object stores the initial mileage and date, the frequency
+# of maintenance in miles and time(months), the mileage and date for the
+# last time this maintenance was performed
+#
 class MaintenanceItem:
 
     # initializes the object contents
@@ -112,7 +127,9 @@ class MaintenanceItem:
         return return_string
 
 
+#
 # CarToMaintain object stores the maintenance item objects associated with a car
+#
 class CarToMaintain:
 
     # initialize the car description and mileage when object created
@@ -155,7 +172,10 @@ class CarToMaintain:
     def get_maintenance_item_last_date(self, item_name):
         return self.items[item_name].last_date
 
+
+#
 # Car Maintenance object stores the cars and the list of items for each car being maintained
+#
 class CarMaintenance:
 
     # initialize the cars dictionary
@@ -233,7 +253,7 @@ class CarMaintenance:
             item_last_datetime = datetime.strptime(item_last_date, '%m/%d/%Y')
             change_date = add_months_to_date(item_last_datetime, int(time_freq))
             if date > change_date:
-                 need = True
+                need = True
 
         return need
 
@@ -280,7 +300,10 @@ class CarMaintenance:
     def set_mileage(self, car_name, mileage):
         self.cars[car_name].mileage = mileage
 
-# function that returns a new date after adding a specified number of months to a specified date
+
+#
+# Returns a new date after adding a specified number of months to a specified date
+#
 def add_months_to_date(date, num_months):
     import datetime
     one_day = datetime.timedelta(days=1)
@@ -300,19 +323,24 @@ def add_months_to_date(date, num_months):
                 break
     return one_month_later
 
-# stores car maintenance data to disc
-def store_car_maintenance_data(car_data, file_name):
+
+#
+# Stores car maintenance data to disc
+#
+def store_car_maintenance_data(car_data_to_store, file_name):
     try:
         file = open(file_name, 'wb')
     except OSError:
         print("Error opening file "+file_name)
         print("Unable to store data to file")
     else:
-        pickle.dump(car_data, file)
+        pickle.dump(car_data_to_store, file)
         file.close()
 
 
-# retrieves car maintenance data from disc
+#
+# Retrieves car maintenance data from disc
+#
 def retrieve_car_maintenance_data(file_name):
     stored_car_data = CarMaintenance()
     try:
@@ -325,6 +353,7 @@ def retrieve_car_maintenance_data(file_name):
         file.close()
 
     return stored_car_data
+
 
 #
 # Create object to store the user's selections
