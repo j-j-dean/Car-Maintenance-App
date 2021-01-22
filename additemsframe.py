@@ -19,9 +19,8 @@ FUNCTION
                                  for a selected car and returns control to the ItemsFrame
                                  object
     do_cancel                 -- returns control to the ItemsFrame object
-    clear_add_items_window    -- calls method grid_forget() to remove the AddItemsFrame
-                                 object from view
-    activate_add_items_window -- sets the AddItemsFrame object back into view
+    build_item_info           -- stores item information when an item was selected to be updated
+
 
 DATA
     self                  -- contains the Frame object used for viewing
@@ -36,8 +35,12 @@ DATA
 import carmaintenance as cm
 import validation as v
 from tkinter import *
+from PIL import ImageTk, Image
 
-#provide data/methods for the add items window
+
+#
+# Provide data/methods for the add items window
+#
 class AddItemsFrame:
 
     # initialize the window contents and store data in object
@@ -48,60 +51,95 @@ class AddItemsFrame:
 
         self.update_mode = False
 
-        self.add_items_frame = Frame(self.tk)
-        self.add_items_frame.grid(row =0, column=0, sticky=N+S+E+W)
+        self.frame = Frame(self.tk, bg=self.tk.background)
+        self.frame.pack(fill=BOTH, expand=TRUE)
+
+        # Create and insert phone background image
+        load_file = "phone-background.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=0, y=0, relwidth=1, relheight=1, anchor=NW)
+        load_file = "phone-hdr.png"
+        img = Image.open(load_file)
+        photo = ImageTk.PhotoImage(img)
+        self.img_hdr_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_hdr_panel.image = photo
+        self.img_hdr_panel.place(x=20, y=80, anchor=NW)
 
         # Create cancel button to return to previous frame
-        self.cancel_button = Button(self.add_items_frame, text="X", command=self.do_cancel, font=("Helvetica", 16))
+        self.cancel_button = Button(self.frame, text="←", command=self.do_cancel,
+                                    font=("Helvetica", 16), bg=self.tk.background)
         self.cancel_button.config(borderwidth=0)
-        self.cancel_button.grid(row=1, padx=5, pady=10, sticky=W)
+        self.cancel_button.place(x=10, y=95, anchor=NW)
+
+        # Create and insert car image
+        load_file = "car.png"
+        img = Image.open(load_file)
+        img = img.resize((40,40),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=150, y=120, anchor=CENTER)
 
         # Create label to display the selected car name
-        self.car_name_label = Label(self.add_items_frame, text = "", font=("Helvetica", 16))
-        self.car_name_label.grid(row=1)
+        self.car_name_label = Label(self.frame, text = "", font=("Helvetica", 16), bg=self.tk.background)
+        self.car_name_label.place(x=150, y=160, anchor=CENTER)
+
+        # Create and insert wrench image
+        load_file = "wrench.png"
+        img = Image.open(load_file)
+        img = img.resize((40,40),Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(img)
+        self.img_panel = Label(self.frame, image=photo, bg=self.tk.background)
+        self.img_panel.image = photo
+        self.img_panel.place(x=150, y=230, anchor=CENTER)
 
         # Create label to display adding/updating the maintenance item
-        self.add_items_label = Label(self.add_items_frame, text = "", font=("Helvetica", 12))
-        self.add_items_label.grid(row=2, padx=10)
-        self.add_items_label.config(width=30)
+        self.add_items_label = Label(self.frame, text = "", font=("Helvetica", 12), bg=self.tk.background)
+        self.add_items_label.place(x=150, y=260, anchor=CENTER)
 
         # Create entry for maintenance item name (ie. "Oil Change")
-        self.item_name_label = Label(self.add_items_frame, text = "Enter Item Name: ", font=("Helvetica", 10))
-        self.item_name_label.grid(row=4, padx=10, pady=20, sticky=W)
-        self.item_name_entry = Entry(self.add_items_frame)
-        self.item_name_entry.grid(row =4, padx=10, sticky=E)
+        self.item_name_label = Label(self.frame, text = "Enter Item Name: ",
+                                     font=("Helvetica", 10), bg=self.tk.background)
+        self.item_name_label.place(x=30, y=310, anchor=W)
+        self.item_name_entry = Entry(self.frame)
+        self.item_name_entry.place(x=150, y=310, anchor=W)
 
         # Create perform maintenance label
-        self.description_label = Label(self.add_items_frame, text = "Perform Maintenance",font=("Helvetica", 12))
-        self.description_label.grid(row=5)
-        self.description_label.config(height=2)
+        self.description_label = Label(self.frame, text = "Perform Maintenance",
+                                       font=("Helvetica", 12), bg=self.tk.background)
+        self.description_label.place(x=150, y=360, anchor=CENTER)
 
         # Create entry to allow a mileage frequency to be specified for the maintenance item
-        self.mileage_freq_label = Label(self.add_items_frame, text = "every", font=("Helvetica", 10))
-        self.mileage_freq_label.grid(row=6, padx=10, pady=10, sticky=W)
-        self.mileage_freq_entry = Entry(self.add_items_frame)
-        self.mileage_freq_entry.grid(row=6)
-        self.mileage_freq_label2 = Label(self.add_items_frame, text="miles", font=("Helvetica", 10))
-        self.mileage_freq_label2.grid(row=6, padx=10, sticky=E)
+        self.mileage_freq_label = Label(self.frame, text = "every", font=("Helvetica", 10), bg=self.tk.background)
+        self.mileage_freq_label.place(x=50, y=410, anchor=W)
+        self.mileage_freq_entry = Entry(self.frame)
+        self.mileage_freq_entry.place(x=100, y=410, anchor=W)
+        self.mileage_freq_label2 = Label(self.frame, text="miles", font=("Helvetica", 10), bg=self.tk.background)
+        self.mileage_freq_label2.place(x=230, y=410, anchor=W)
 
-        # Create entry for all a time in months frequency to be specified for the maintenance item
-        self.months_freq_label = Label(self.add_items_frame, text = "every", font=("Helvetica", 10))
-        self.months_freq_label.grid(row=7, padx=10, sticky=W)
-        self.months_freq_entry = Entry(self.add_items_frame)
-        self.months_freq_entry.grid(row=7)
-        self.months_freq_label2 = Label(self.add_items_frame, text = "months", font=("Helvetica", 10))
-        self.months_freq_label2.grid(row=7, padx=10, sticky=E)
+        # Create entry to specify a time in months (frequency) to be specified for the maintenance item
+        self.months_freq_label = Label(self.frame, text = "every", font=("Helvetica", 10), bg=self.tk.background)
+        self.months_freq_label.place(x=50, y=440, anchor=W)
+        self.months_freq_entry = Entry(self.frame)
+        self.months_freq_entry.place(x=100, y=440, anchor=W)
+        self.months_freq_label2 = Label(self.frame, text = "months", font=("Helvetica", 10), bg=self.tk.background)
+        self.months_freq_label2.place(x=230, y=440, anchor=W)
 
         # Create label to display information to the user
-        self.info_label = Label(self.add_items_frame, text="", fg="red", font=("Helvetica", 12))
-        self.info_label.grid(row=8, padx=5)
+        self.info_label = Label(self.frame, text="", fg="red", font=("Helvetica", 12), bg=self.tk.background)
+        self.info_label.place(x=150, y=480, anchor=CENTER)
 
         # Create button to save maintenance items for the selected car
-        self.additem_button = Button(self.add_items_frame, text="Save", command=self.do_add, font=("Helvetica", 10))
-        self.additem_button.config(borderwidth=2)
-        self.additem_button.grid(row=9)
+        self.additem_button = Button(self.frame, text="Save", command=self.do_add, font=("Helvetica", 10),bg=self.tk.background)
+        self.additem_button.place(x=15, y=530, anchor=SW)
 
-    #add an additional item for the selected car into the CarMaintenance object
+        # Build the item list and display items to the user
+        self.build_item_info()
+
+    # add an additional item for the selected car into the CarMaintenance object
     def do_add(self):
         info_text = ""
         car = cm.selections.get_car_selected()
@@ -117,7 +155,7 @@ class AddItemsFrame:
         if item == "":
             self.info_label.config(text="Please enter maintenance item!")
         else:
-            # Issue validation errors
+            # If validation error issue validation error message
             if info_text != "":
                 self.info_label.config(text=info_text)
             else:
@@ -135,7 +173,6 @@ class AddItemsFrame:
 
                     # update the stored information for this maintenance item
                     cm.car_data.add_car_items(car, item, freq_miles, freq_time, last_maint_mileage, last_maint_date)
-                    self.clear_add_items_window()
 
                     # return to perform maintenance view if updating or to the items view if adding new item data
                     if self.update_mode:
@@ -143,34 +180,31 @@ class AddItemsFrame:
                     else:
                         self.master.activate_items_window()
 
-    # cancels the request by clearing the view and returning to the previous view
+    # cancels returning to the previous view
     def do_cancel(self):
-        self.clear_add_items_window()
         if self.update_mode:
             self.master.activate_perform_maint_window()
         else:
             self.master.activate_items_window()
 
-    # clears the add maintenance items view
-    def clear_add_items_window(self):
-        self.add_items_frame.grid_forget()
-        self.info_label.config(text="")
-        self.item_name_entry.config(state=NORMAL)
-        self.item_name_entry.delete(0, END)
-        self.mileage_freq_entry.delete(0, END)
-        self.months_freq_entry.delete(0, END)
+    # build the item information when an update is requested
+    def build_item_info(self):
 
-    # activates the add maintenance items view and restores it's contents
-    def activate_add_items_window(self, update=False):
-        self.add_items_frame.grid(column=0, row=0)
+        # determine if update requested based on an item being selected
+        item_text_entry = cm.selections.get_item_selected()
+        if item_text_entry != "":
+            self.update_mode = True
+        else:
+            self.update_mode = False
+
         car = cm.selections.get_car_selected()
-        self.car_name_label.config(text=car)
+        car_text = car.replace('_', ' ')
+        self.car_name_label.config(text=car_text)
 
         # if updating maintenance item - display stored maintenance item data
-        if update:
-            self.update_mode = True
-            item_text_entry = cm.selections.get_item_selected()
-            item = item_text_entry.replace(' ', '_')
+        if self.update_mode:
+            item = cm.selections.get_item_selected()
+            item_text_entry = item_text_entry.replace('_', ' ')
             self.item_name_entry.insert(0, item_text_entry)
             self.item_name_entry.config(state=DISABLED)
             freq_miles = cm.car_data.get_item_freq_miles(car, item)
@@ -179,5 +213,4 @@ class AddItemsFrame:
             if freq_months != 0: self.months_freq_entry.insert(0, freq_months)
             self.add_items_label.config(text="Update Maintenance Item")
         else:
-            self.update_mode = False
             self.add_items_label.config(text="Add Maintenance Item")
