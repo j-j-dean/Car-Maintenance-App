@@ -17,3 +17,9 @@ This file starts the process by creating and loading the user interface.
 This file contains the classes and the objects that store all the maintenance data including: 
 a list of cars being maintained, a list of items for each car being maintained, and
 the current user selections being traversed while examining a car's maintenance history.
+
+## <***>Frame.py
+These files define the various user interface views and methods for the application
+
+## <***>.png
+Custom images I created for the application to make the views look more appealing.
